@@ -1,0 +1,25 @@
+---
+title: "Quiz 3 Take Home"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1:
+
+At the time that the challenger data was being presented this would probably not be considered unethical, however in retrospect this seems to be an unethical. When presenting data you need to present all relevant data to inform your audience the best that you can. Through this mistake the scientists presented a graph that seemed to have no relationship between failure and temperature when in fact there was a relationship when more points were added in. In certain situations you need to keep in mind all possible situations that could arise. In this example it almost never that cold in Florida, but it did happen on that day and it ended up having catastrophic consequences. I think that even though there was no malicious intent the lack of foresight in presenting this data, and leaving some out, makes this example unethical. 
+
+Question 2:
+
+https://www.forbes.com/sites/naomirobbins/2011/11/17/whats-wrong-with-this-graph/?sh=2154be8a2a33
+
+This link brings you to a graph showing the valuation of Facebook through the year 2011. First, the y axis starts 55 instead of 0. Second, there are 11 evenly spaced bars but some of the bars represent multiple months. 
+
+Question 3:
+Commit: committing means that you are saving the project your working on and writing a message to describe the steps that were taken in a given section
+
+Push: Pushing is when you send the project to your GitHub repository to be viewed
+
+Pull: Pulling is when you bring a project back into R to continue work on it or refer back to different version. 
