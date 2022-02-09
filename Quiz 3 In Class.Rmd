@@ -1,0 +1,25 @@
+---
+title: "Quiz 3 In Class"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1:
+
+You get an error because you made changes to the README file in GitHub. In order to not receive this error message you need to pull the README file back into R, make the changes, commit the files, and then push them to you GitHub repository. 
+
+Question 2:
+
+The first advantage of Github is that you can always access it and see what you did during different parts of the projects. This would be good if you need to get your data back in a certain form and you can easily check how you did that with GitHub. The second advantage is that if you need to work on a specific section, you can pull that section back into R and continue to work on it pretty easily. 
+
+Question 3:
+
+I think that the most difficult data ethics principle is the inclusion of all data. For example, based on you life experiences you may not realize all the data that is out there for a given project and even with due diligence you could think you have it all. If it turns out you don't then you can tell a really misleading story about the data. Additionally, it can be really hard to find the necessary data for a project, and you make not have the resources you need to find that data. 
+
+Question 4:
+
+The example that they use for emotion is deaths due to gun violence. You should not use emotion in data because it can cause bias in your work. For example, if you are really emotional about gun violence because you lost a loved one to it then you could have implicit or explicit bias towards the topic and mislead your audience. 
+
