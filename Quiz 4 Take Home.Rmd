@@ -1,0 +1,39 @@
+---
+title: "Quiz 4 Take Home"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+“All work presented is my own, and I have followed all rules for collaboration.”
+
+I worked with Jonathan Burger
+```{r}
+library(devtools)
+library(tidyverse)
+library(uszipcodes)
+library(maps)
+library(leaflet)
+
+uscities <- maps::us.cities
+
+capitals <- uscities %>% filter(capital == 2)
+view(capitals)
+
+
+content <- capitals %>%
+  mutate(popup = paste0(name))
+
+capital_map <- leaflet(capitals) %>%
+  setView(lng = -98.583, lat = 39.833, zoom = 4) %>% 
+  addTiles() %>% 
+  addProviderTiles(providers$Wikimedia) %>% 
+  addMarkers(lng = capitals$long, lat = capitals$lat,
+             clusterOptions = markerClusterOptions(),
+             popup = content$popup)
+capital_map
+```
+
