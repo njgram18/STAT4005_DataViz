@@ -1,0 +1,314 @@
+---
+title: "Chapter 6 Mapping"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+6.1
+
+```{r}
+##install.packages("maps")
+library(maps)
+library(tidyverse)
+#> ── Attaching packages ─────────────────── tidyverse 1.3.1 ──
+#> ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+#> ✓ tibble  3.1.2     ✓ dplyr   1.0.7
+#> ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+#> ✓ readr   2.0.2     ✓ forcats 0.5.1
+#> ── Conflicts ────────────────────── tidyverse_conflicts() ──
+#> x dplyr::filter() masks stats::filter()
+#> x dplyr::lag()    masks stats::lag()
+#> x purrr::map()    masks maps::map()
+state_df <- ggplot2::map_data("state")
+```
+```{r}
+ggplot(data = state_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon(fill = "white", colour = "black") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(axis.text = element_blank()) +
+  theme_void()
+```
+
+```{r}
+##install.packages("usdata")
+library(usdata)
+state_stats
+#> # A tibble: 51 x 24
+#>    state abbr   fips pop2010 pop2000 homeownership multiunit
+#>    <fct> <fct> <dbl>   <dbl>   <dbl>         <dbl>     <dbl>
+#>  1 Alab… AL        1  4.78e6  4.45e6          71.1      15.5
+#>  2 Alas… AK        2  7.10e5  6.27e5          64.7      24.6
+#>  3 Ariz… AZ        4  6.39e6  5.13e6          67.4      20.7
+#>  4 Arka… AR        5  2.92e6  2.67e6          67.7      15.2
+#>  5 Cali… CA        6  3.73e7  3.39e7          57.4      30.7
+#>  6 Colo… CO        8  5.03e6  4.30e6          67.6      25.6
+#>  7 Conn… CT        9  3.57e6  3.41e6          69.2      34.6
+#>  8 Dela… DE       10  8.98e5  7.84e5          73.6      17.7
+#>  9 Dist… DC       11  6.02e5  5.72e5          43.5      61.7
+#> 10 Flor… FL       12  1.88e7  1.60e7          69.7      30  
+#> # … with 41 more rows, and 17 more variables: income <dbl>,
+#> #   med_income <dbl>, poverty <dbl>, fed_spend <dbl>,
+#> #   land_area <dbl>, smoke <dbl>, murder <dbl>,
+#> #   robbery <dbl>, agg_assault <dbl>, larceny <dbl>,
+#> #   motor_theft <dbl>, soc_sec <dbl>, nuclear <dbl>,
+#> #   coal <dbl>, tr_deaths <dbl>, tr_deaths_no_alc <dbl>,
+#> #   unempl <dbl>
+```
+
+```{r}
+state_stats <- state_stats %>% mutate(state = str_to_lower(state))
+state_full <- left_join(state_df, state_stats, by = c("region" = "state"))
+
+state_full <- state_full %>%
+  mutate(pop_change = 100 * (pop2010 - pop2000) / pop2000)
+
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = pop_change)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_distiller(type = "div", direction = 1)
+## should change so that middle colour is 0
+## fermenter is for binning continuos
+## brewer is for discrete colours
+## distiller is for continous variable
+```
+6.2
+
+Exercise 1:
+Any variable that your are tracking over time. Much easier to see the trends in a graph than a map
+
+
+6.3
+```{r}
+##install.packages("sf")
+library(sf)
+active <- read_csv("https://raw.githubusercontent.com/iramler/stlawu_covid/main/slc_towns_active_cases.csv", n_max = 34)
+#> Rows: 34 Columns: 330
+#> ── Column specification ────────────────────────────────────
+#> Delimiter: ","
+#> chr   (1): NAME
+#> dbl (329): Order, Population, Area, 1/18/2022, 1/14/2022...
+#> 
+#> ℹ Use `spec()` to retrieve the full column specification for this data.
+#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+tcases <- read_csv("https://raw.githubusercontent.com/iramler/stlawu_covid/main/slc_towns_total_cases.csv", n_max = 34)
+#> Rows: 34 Columns: 323
+#> ── Column specification ────────────────────────────────────
+#> Delimiter: ","
+#> chr   (1): NAME
+#> dbl (322): Order, Population, Area, 1/18/2022, 1/14/2022...
+#> 
+#> ℹ Use `spec()` to retrieve the full column specification for this data.
+#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+active_long <- active %>% pivot_longer(5:ncol(active), names_to = "date",
+                                       values_to = "cases")
+## repeat for total cases
+tcases_long <- tcases %>% pivot_longer(5:ncol(tcases), names_to = "date",
+                                       values_to = "cases")
+
+library(lubridate)
+#> 
+#> Attaching package: 'lubridate'
+#> The following objects are masked from 'package:base':
+#> 
+#>     date, intersect, setdiff, union
+covid_df <- left_join(tcases_long, active_long,
+                      by = c("date", "Order", "NAME")) %>%
+  mutate(date = mdy(date)) %>%
+  rename(total_cases = cases.x,
+         active_cases = cases.y) %>%
+  mutate(total_cases = if_else(is.na(total_cases),
+                               true = 0, false = total_cases),
+         active_cases = if_else(is.na(active_cases),
+                                      true = 0, false = active_cases))
+  
+
+covid_SLC <- covid_df %>% filter(NAME == "St. Lawrence County")
+covid_sub <- covid_df %>% filter(NAME != "St. Lawrence County")
+```
+Exercise 1:
+
+```{r}
+ggplot(data = covid_SLC, aes(x = date, y = active_cases)) +
+  geom_line()
+```
+
+```{r}
+## install.packages("sf")
+library(sf)
+#> Linking to GEOS 3.8.1, GDAL 3.2.1, PROJ 7.2.1
+shp <- read_sf("data/SLC_Civil_Boundaries_SHP/slc.shp") %>%
+  st_transform(st_crs("+proj=longlat"))
+```
+
+```{r}
+ggplot(data = shp) +
+  geom_sf() +
+  theme_void()
+```
+```{r}
+full_df <- left_join(shp, covid_sub, by = "NAME") %>%
+  filter(date == max(date)) ## only plot cases on the most recent date
+```
+
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void()
+  
+```
+
+Exercise 2:
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void() +
+   scale_fill_viridis_b(n.breaks = 5)
+```
+
+Exercise 3:
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void() +
+   scale_fill_viridis_c() +
+  geom_sf_text(aes(label = active_cases, colour = "red"))
+```
+
+6.4 Leaflet
+
+```{r}
+##install.packages("devtools")
+library(devtools)
+#> Loading required package: usethis
+##devtools::install_github("li-wen-li/uszipcodes")
+library(uszipcodes)
+```
+```{r}
+library(tidyverse)
+beers <- read_csv("data/breweries.csv") 
+#> Rows: 2407 Columns: 6
+#> ── Column specification ────────────────────────────────────
+#> Delimiter: ","
+#> chr (5): brewery_name, type, address, website, state
+#> dbl (1): state_breweries
+#> 
+#> ℹ Use `spec()` to retrieve the full column specification for this data.
+#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+```{r}
+raw_zip <- uszipcodes::get_zip(beers$address)
+beers$Zip <- as.integer(uszipcodes::clean_zip(raw_zip))
+#> Warning: NAs introduced by coercion
+
+## only keep zip, lat, and long
+zip_tab <- zip_table %>% dplyr::select(Zip, Latitude, Longitude)
+beer_location <- inner_join(beers, zip_tab)
+#> Joining, by = "Zip"
+```
+```{r}
+content <- beer_location %>%
+  mutate(popup = paste0('<a href =', beer_location$website, '>',
+                        beer_location$brewery_name, '</a>'))
+```
+
+```{r}
+library(leaflet)
+
+beer_map <- leaflet(beer_location) %>%
+  setView(lng = -98.583, lat = 39.833, zoom = 4) %>% 
+  addTiles() %>% 
+  addProviderTiles(providers$Wikimedia) %>% 
+  addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude,
+             clusterOptions = markerClusterOptions(),
+             popup = content$popup)
+beer_map
+```
+
+Exercise 1:
+get rid of breweries that do not have a valid zip code and would also remove zip codes with no breweries
+
+Exercise 2:
+
+
+
+Section 6.6 Supplementary Exercises:
+
+```{r}
+library(tidyverse)
+hpi_df <- read_csv("data/hpi-tidy.csv")
+#> Rows: 151 Columns: 11
+#> ── Column specification ────────────────────────────────────
+#> Delimiter: ","
+#> chr (3): Country, GovernanceRank, Region
+#> dbl (8): HPIRank, LifeExpectancy, Wellbeing, HappyLifeYe...
+#> 
+#> ℹ Use `spec()` to retrieve the full column specification for this data.
+#> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+Exercise 1:
+
+```{r}
+world <- map_data("world")
+
+world_hpi <- left_join(world, hpi_df, by = c("region" = "Country"))
+
+ggplot(data = world_hpi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = HappyPlanetIndex)) +
+  coord_map(projection = "mercator") +
+  theme_void()
+
+hpi_df
+world
+```
+
+Exercise 2:
+
+```{r}
+hpi_df %>% mutate(Country = if_else(Country == "USA",
+                                      true = "United States of America",
+                                      false = "Country"))
+world_hpi <- left_join(world, hpi_df, by = c("region" = "Country"))
+
+ggplot(data = world_hpi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = HappyPlanetIndex)) +
+  coord_map(projection = "mercator") +
+  theme_void()
+## can't get the USA to fill
+```
+
+Exercise 3:
+```{r}
+##install.packages("gridExtra")
+library(gridExtra)
+
+ggplot(data = world_hpi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = HappyPlanetIndex)) +
+  coord_map(projection = "mercator") +
+  coord_map(xlim = c(-180,180)) +
+  theme_void()
+```
+
+Exercise 4:
+The blog explains that the way the map was created has been around for centuries, but the map distorts country sizes by a lot. Greenland is 550% too large and it should really fit into Africa 14 times 
+
+Exercise 5:
+```{r}
+ggplot(data = world_hpi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = HappyPlanetIndex)) +
+  coord_map(projection = "globular", xlim = c(-180,180)) +
+  theme_void()
+```
+```{r}
+ggplot(data = world_hpi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = HappyPlanetIndex)) +
+  coord_map(projection = "gilbert", xlim = c(-180,180)) +
+  theme_void()
+```
+With these two different projections it seems like the globular projections does a better job of representing the size of Greenland compared to Africa. To me it seems like 14 Greenlands could fit in the area of Africa. The gilbert projection seems like it represents Greenland as being too large. 
+
