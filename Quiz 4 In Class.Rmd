@@ -1,0 +1,35 @@
+---
+title: "Quiz 4 In Class"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+“All work presented is my own. I have not communicated with or worked with anyone else on this quiz.”
+
+Question 1:
+```{r}
+library(tidyverse)
+library(here)
+alcohol_df <- read_csv(here("data/alcohol.csv"))
+alcohol_df
+```
+```{r}
+library(gridExtra)
+world <- map_data("world")
+
+world_beer <- left_join(world, alcohol_df, by = c("region" = "country"))
+
+ggplot(data = world_beer, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = beer_servings)) +
+  coord_map(projection = "mercator") +
+  theme_void() +
+  scale_fill_viridis_c()
+
+```
+
+Question 2:
+How have alcohol trends changed since the start of the pandemic?
+I would create a scatterplot with a line of best fit to see if the alcohol trends have incerased or decreased since the pandemic. The x axis would have year and the y would have total liters of pure alcohol. 
