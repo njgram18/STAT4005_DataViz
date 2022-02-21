@@ -1,0 +1,17 @@
+---
+title: "Chapter 9 Notes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Section 9.1
+
+1.) The user is able to change the intercept, slope, sample size, and standard deviation.
+
+2.)The outputs are a graph and a table
+
+3.)
+The app I found was a NCAA swimming app. It allowes the user to select the colleges and universities in a given region and then select a school and receive a list of all the athletes. You can change the region, the type of school, the event, and the a couple different ranking variables. 
