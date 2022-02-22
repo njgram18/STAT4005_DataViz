@@ -1,0 +1,53 @@
+---
+title: "Quiz 5 Take Home"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+“All work presented is my own, and I have followed all rules for collaboration.”
+Nick Grammas
+
+1.)
+
+```{r}
+library(tidyverse)
+statsurvey_df <- read_csv("data/stat113_survey.csv")
+view(statsurvey_df)
+
+ggplot(data = statsurvey_df, aes(x = time_year, y = Facebook)) +
+  geom_point() +
+  coord_flip()
+```
+
+2.)
+
+```{r}
+stat_facebook <- statsurvey_df %>% group_by(time_both, Facebook) %>%
+  filter(!is.na(Facebook)) %>% 
+  summarise(ncount = n())%>%
+  ungroup() %>%
+  group_by(time_both) %>%
+  mutate(Facebook_yes = Facebook > 0) %>%
+  mutate(fb_y = sum(Facebook_yes)) %>%
+  ungroup() %>%
+  group_by(time_both) %>%
+  mutate(Facebook_no = Facebook == 0) %>%
+  mutate(fb_n = sum(Facebook_no)) %>% 
+  mutate(fb_total = fb_y + fb_n) %>%
+  mutate(prop_yes = fb_y/fb_total) %>%
+  mutate(prop_no = fb_n/fb_total) %>%
+  ungroup()
+ 
+         
+view(stat_facebook)
+
+ggplot(data = stat_facebook, aes(x = time_both, y = prop_yes)) +
+  geom_col()
+
+ggplot(data = stat_facebook, aes(x = time_both, y = prop_no)) +
+  geom_col()
+```
+
