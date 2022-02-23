@@ -1,0 +1,45 @@
+---
+title: "Quiz 5 In Class"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1:
+
+The first graph is the appropriate construct because it is only showing the counts of each speicies and therefore does not need to show any variablity. 
+
+Question 2:
+```{r}
+library(here)
+hpi_df <- read_csv(here("data/hpi-tidy.csv"))
+library(tidyverse)
+
+hpi_wrong <- hpi_df %>% group_by(Region) %>%
+  summarise(average_life_expectancy = mean(LifeExpectancy))
+ggplot(data = hpi_wrong, aes(x = Region, y = average_life_expectancy)) +
+  geom_col()
+```
+
+Question 3:
+
+```{r}
+hpi_life_expectancy <- hpi_df %>% group_by(Region) %>%
+  summarise(ncount = n()) %>%
+  ungroup() %>%
+  mutate(ntotal = sum(ncount)) %>%
+    mutate(prop = ncount / ntotal, 
+         se = sqrt(prop * (1 - prop) / ntotal))
+
+ggplot(data = hpi_life_expectancy, aes(x = Region, y = ncount)) +
+  geom_point() +
+  
+
+hpi_life_expectancy
+hpi_df
+
+##I was trying to show the difference in the amount of countries in each region through the standard errors to express the variability in Life Expectancy. I couldn't get the data to were I needed it and ended up running out of time. 
+```
+
