@@ -1,0 +1,63 @@
+---
+title: "Mini Tutorial 3 Expressing Uncertainty"
+author: "Nick Grammas"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+### In this section we will look at the benefits of expressing uncertainty in our graphics. As you will see, expressing uncertainty has its benefits in many scenarios because it gives us a better understanding of our data. To show this, we will be using the HomesNNY data set, which is a data set about housing prices and various other housing statistics for the Canton and Potsdam markets. Specifically, we will be looking at housing prices to show that expressing uncertainty can give us a better idea of these housing markets. 
+
+```{r , echo=FALSE, message=FALSE, results='hide'}
+library(tidyverse)
+homes_df <- read_csv("data/HomesNNY.csv")
+homes_df
+```
+```{r}
+homes_towns_df <- homes_df %>% group_by(Town) %>%
+  summarise(meanPrice_thousands = mean(Price_thousands))
+
+ggplot(data = homes_towns_df, aes(x = Town, y = meanPrice_thousands, fill = Town)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Town",
+       y = "Mean Home Price in Thousands")
+library(pander)
+pander(homes_towns_df)
+
+```
+
+
+### Based off of this bar plot it seems as if the mean price of houses in Canton and Potsdam are virtually identical. Based off of the table it seems like the mean home prices are in fact really close (Canton $140.6365, Potsdam $140.5207). However, just looking at the mean may make us lose sight of what the Canton and Potsdam housing market is really doing. Expressing some of the uncertainty that we have in our data set can help us fill the gaps, and get a better idea of what these markets really look like. 
+
+
+## Creating Standard Errors
+```{r}
+homes_uncertainty <- homes_df %>% group_by(Town) %>%
+  summarise(meanPrice = mean(Price),
+            sdPrice = sd(Price),
+            nPrice = n()) %>%
+  mutate(l_se = meanPrice - sdPrice / sqrt(nPrice),
+         u_se = meanPrice + sdPrice / sqrt(nPrice))
+```
+
+### In this section we take the homes_df data set and create upper and lower standard errors for both the Canton and Potsdam housing markets. This will be helpful in our next step of creating a graph. 
+
+## Uncertainty Graph
+
+```{r}
+ggplot(data = homes_uncertainty, aes(x = Town, y = meanPrice)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = l_se, ymax = u_se)) +
+  coord_flip()
+homes_uncertainty
+```
+
+### Unlike the first graph we created, this one gives a must better picture of the housing markets for Canton and Potsdam. First, it shows that, once again, the mean housing price for both towns is very similar, but it is clearer to see that Canton is slightly above Postdam. Also, the bounds of these graphs that we created in the last section show us that the standard error for housing prices is Canton is also slightly larger than Potsdam. This could be the reason that the mean housing price is slightly larger than Potsdam. Overall, we can analyze this graph much more than the bar graph that we created beacuse we have expressed the uncertainty in our data. 
+

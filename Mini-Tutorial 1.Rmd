@@ -1,0 +1,138 @@
+---
+title: "Mini-Tutorial 1: Data Visualization Concepts"
+author: "Nick Grammas"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+## “All work presented is my own. I have not communicated with or worked with anyone else on this exam.”
+
+### In this mini-tutorial I will show you the concepts relating to the Grammar of Graphics as well as dive into data visualization concepts from Data Visualization: A Practical Introduction. Going through this section will show you the foundation of data visualization and the reasons that this is so important to understand in the context of data. 
+
+# Grammar of Graphics
+
+### The Grammar of Graphics includes these main concepts:  Data, Geom, Mapping, and Faceting. Grammar of graphics is super important because they are the tools that all data vizualists use to create plots and other graphics. These tools let you build and customize any plot to meet the needs of a project and allow your audience to understand and analyze the data. 
+
+# Data
+
+```{r}
+library(tidyverse)
+standings_df <- read_csv("data/standings.csv")
+standings_df
+```
+### This data of NFL Standings from 2011 to 2019. Data is a major part of data visualization. It is a required parameter, but it is also important for you to understand the data that you are using before you make any graph. 
+
+# Geom
+
+### The geom is the geometric object that you are using to represent the data. There are many different types of graphs that you could use to represent this data, but it is important that your graph represents the data well. That is why it is important to understand your data before you make these graphs. 
+
+```{r}
+NE_df <- standings_df %>% filter(team == "New England")
+ggplot(data = NE_df, aes(x = year, y = wins)) +
+  geom_col()
+```
+### This bar graph shows the number of New England Patriot wins through the years
+
+```{r}
+ggplot(data = NE_df, aes(x = year, y = points_for)) + 
+  geom_point()
+```
+### This scatter plot shows the amount of points the New England Patriots have scored from 2000 to 2019.
+
+# Mapping
+### Mapping includes all of the aesthetic functions that are available in ggplot in R. These include but are not limited to variables (x and y), color, size, shape, etc. We have already seen some mapping in the above examples, but there is much more that you can do like in these examples.
+
+```{r}
+ggplot(data = standings_df, aes(x= wins, colour = team, fill = team)) +
+  geom_bar()
+```
+### As you can see through this mapping I have been able to add color to represent each NFL team. However, I have made a graph that is really difficult to read and have an audience understand what they are looking at. This is allows me to introduce another important topic Faceting.
+
+# Faceting
+### For this section I have cut the data set down to just AFC east teams.
+```{r}
+AFCEast_df <- standings_df %>% filter(team_name == "Patriots" | team_name == "Bills" | team_name == "Jets" | team_name == "Dolphins")
+AFCEast_df
+ggplot(data = AFCEast_df, aes(x = year, y = wins, colour = team, fill = team)) +
+  geom_col() +
+  facet_wrap(~ team_name)
+
+```
+### Through faceting we can make a much more organized graph that allows the people looking at our analysis to get a better idea of what they are looking at. The graph in the prior section was very unorganized however the facet_wrap function allows up to see the win totals for these AFC East teams much easier. Additionally, it is much easier for a viewer of this faceted plot to compare the number of wins between these four teams
+
+# Problems with Honesty and Good Judgement
+
+### As a data visualist you see graphs and representations of data on an everyday basis. Through this repetition you can understand how to read graphs, and can spot when things are off. Unfortunately, not all people have the skills to accurately read or understand what a graph is showing. In this section we will use an Happy Planet Index data set to show some of the good practices to allow people to interpret graphs and data.
+
+```{r}
+hpi_df <- read_csv("data/hpi-tidy.csv")
+hpi_LE_df <- hpi_df %>% group_by(Region) %>%
+  summarise(mean_LE = mean(LifeExpectancy))%>%
+  select(Region, mean_LE) %>%
+  arrange(desc(mean_LE)) %>%
+  group_by(Region) %>%
+  mutate(LEorder = fct_reorder(Region, mean_LE))
+
+ggplot(data = hpi_LE_df, aes(x = LEorder, y = mean_LE, fill = LEorder)) +
+  geom_col() +
+  coord_flip() +
+  scale_colour_viridis_b() +
+  labs(x = "Region",
+       y = "Mean Life Expectancy") +
+  theme(legend.position = "none")
+
+
+```
+### We can see in this graph the mean life expectancies for each region in the data set. Although this graph is not necessarily misleading, for the population that does not have the skills that we have this could be tricky to figure out and interpret correctly. 
+
+```{r}
+hpi_df <- read_csv("data/hpi-tidy.csv")
+hpi_LE_df <- hpi_df %>% group_by(Region) %>%
+  summarise(mean_LE = mean(LifeExpectancy))%>%
+  select(Region, mean_LE) %>%
+  arrange(desc(mean_LE)) %>%
+  group_by(Region) %>%
+  ungroup() %>%
+  mutate(LEorder = fct_reorder(Region, mean_LE))
+
+ggplot(data = hpi_LE_df, aes(x = LEorder, y = mean_LE, fill = LEorder)) +
+  geom_col() +
+  coord_flip() +
+  scale_colour_viridis_b() +
+  labs(x = "Region",
+       y = "Mean Life Expectancy") +
+  theme(legend.position = "none")
+```
+### The difference in this graph is that I have put the regions in decsending order based on life expectancy. This allows people to clearly see the order in which the mean life expectancy is presented. Additionally, a major factor in allowing the audience to understand these bar charts is having a zero base. Notice all of these bars start at zero, this allows the viewer to understand this graph that much easier because they do not need to interpret the starting point of each bar. 
+
+
+# Good Data
+### Having good data that is representative of the topic that you are trying to cover is extremely important when showing your charts in graphs to other people. There may be many times when missing data could make very small changes to your results, but there are other times where this type of data can lead to massive changes to your analysis. In this section we will you the Happy Planet Index once again to show some of the effects of not having good, well represented data. 
+
+```{r}
+library(plotly)
+plot_full <- ggplot(data = hpi_df, aes(x = GDPcapita, y = Wellbeing, label = Country)) +
+  geom_point() +
+  geom_smooth()
+
+ggplotly(plot_full, tooltip = "label")
+hpi_df
+```
+### In this graph with all the countries we can see a nice representative relationship between GDP per Capita and Well Being. However, if we take out some of the data, making it not representative we see a much different story. 
+
+```{r}
+hpi_not_full_df <- hpi_df %>% slice(1:76)
+hpi_not_full_df
+
+plot_not_full <- ggplot(data = hpi_not_full_df, aes(x = GDPcapita, y = Wellbeing, label = Country)) +
+  geom_point() + 
+  geom_smooth()
+
+ggplotly(plot_not_full, tooltip = "label")
+```
+### In this plot half of the data set has been removed and the result of the trend is much different than the full data set. This is a very extreme example, but it shows the importance of making sure that you data set is full and representative. Viewers of this graph could easily interpret this by saying "that as GDP per Capita increases, Well being increases." However, in the full data set we can see that interpretation is not necessarily correct. 

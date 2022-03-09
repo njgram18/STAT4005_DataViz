@@ -1,0 +1,72 @@
+---
+title: "Mini-Tutorial 2: Mapping"
+author: "Nick Grammas"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+### In this section we will go into mapping in R. Mapping can be a very useful way of expressing data because it allows viewers to directly see what the data represents. This section will go over creating a map in R, getting data in a form to combine data, and then displaying that data in the map. In this data set we will be using two different data sets. The first data set is states_df. states_df is a data set within R that allows you to create maps using longitude and lattitude data. In this tutorial we will look specifically at New England. The second data set we will use is a gun violence data set and specifically looking at the data on mortality rates due to gun violence. We will use this data set to compare mortality rates among the New England states. 
+
+
+## Making the Map
+
+```{r}
+library(tidyverse)
+library(maps)
+states_df <- ggplot2::map_data("state")
+
+new_england_df <- states_df %>% filter(region == "massachusetts" |
+                                         region == "new hampshire" |
+                                         region == "rhode island" |
+                                         region == "connecticut" |
+                                         region == "vermont" |
+                                         region == "maine")
+
+
+ggplot(data = new_england_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon() 
+```
+### In this section we used the states_df data set to filter the states that are apart of the New England region of the US. Using this smaller data set, named new_england_df, we use geom_polygon to create the map of the New England States. 
+
+## Wrangling the Data
+
+```{r}
+gun_df <- read_csv("data/gun_violence_us.csv")
+
+gun_df_state <- gun_df %>% filter(state == "MA" |
+                                    state == "CT" |
+                                    state == "VT" |
+                                    state == "ME" |
+                                    state == "RI" |
+                                    state == "NH") %>%
+  select(state, mortality_rate) %>%
+  mutate(region = case_when(state == "MA" ~ "massachusetts",
+                            state == "CT" ~ "connecticut",
+                            state == "VT" ~ "vermont",
+                            state == "ME" ~ "maine",
+                            state == "RI" ~ "rhode island",
+                            state == "NH" ~ "new hampshire")) %>%
+  select(mortality_rate, region)
+gun_df_state
+library(lubridate)
+ne_full <- left_join(new_england_df, gun_df_state, by = c("region" = "region"))
+
+```
+### In this section we wrangle the data to make the gun violence data set and the states_df data set to match each other. From there, we join the data sets together using the left_join function to combine the data. This allows us to create the map that will also allow us to show the different mortality rates among the New England States.
+
+## Graph with Mortality Rates
+```{r}
+ggplot(data = ne_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = mortality_rate)) +
+  theme_void()
+```
+### In this section we have used our combined data set to create a map of New England with the mortality rates for each state. This mortality rate is color coded, in a sequential color scheme, in the key to the right. From this map we can see that Rhode Island has the lowest mortality rate due to gun violence, and Vermont has the highest mortality rate. 
+

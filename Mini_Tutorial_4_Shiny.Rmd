@@ -1,0 +1,40 @@
+---
+title: "Mini-Tutorial 4: Shiny and Reactivity"
+author: "Nick Grammas"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+mlb_app <- read_csv("data/mlb2016.csv")
+mlb_app_df <- mlb_app %>% select(POS, Salary, Years, Total.Value, Avg.Annual) %>%
+  mutate(Salary = parse_number(Salary),
+         TotalValue = parse_number(Total.Value),
+         AvgAnnual = parse_number(Avg.Annual)) %>%
+  select(POS, Salary, TotalValue, AvgAnnual)
+
+mlb_app_df
+```
+## Introduction
+
+### In this app we will look into the shiny app programs that are built into R. To examine some of the features that are available in this program we will be examining the MLB 2016 data set which gives statistics on the 2016 MLB salaries. We will be using the variable position (POS), salary, total value, and avgannual to show how a shiny app works. 
+
+## What is Shiny?
+
+### Shiny is a program in R that allows you to create interative apps that users can use to learn more about a set of data and conduct some of their own analysis. What is great about shiny is that it allows you to be pretty flexible in these apps through the numerous options and features in the program. There are two main parts of any shiny app, the ui, fluid page and the server page. The ui page is where the inputs and variables are in the app. the server page takes the inputs from the ui section and creates the histogram that we see in this app.
+
+## Features in the MLB App
+
+### The first feature in this app is the side bar layout feature. This feature creates the main layout of the app where the options the user can pick are on the left had side and the main panel is on the left. Within this feature there is the side bar panel feature. This feature is programmed to allow users to pick the position of their interest. Next, there is the radio buttons feature. This feature allows the user to select the salary related variable that the user would like to analyze. Finally, there is the slider input which allows users to manipulate the number of bins that are in the histogram. All of these go into the main panel of the app which ultimatley makes our histogram. 
+
+# Reactivity
+
+### Reactivity is an essential piece in this MLB App and many of these interactive shiny apps. Reactivity allows shiny apps, and specifically graphs, to be dependent on inputs that are chosen in the app. As a result, when an input is changed the entire output changes with it. That is why in the MLB app when the position, variable of choice, or bins are changed the entire graph automatically changes. The reactivity in these apps is built in the server of app. You can see in the MLB app I used the reactive function (reactive ({ ) to incorporate player position first, then within the ggplot function I used another reactive function to incorporate the variable, and the number of bins in the histogram. The combination of the ui, server, and reactive functions allows the MLB app and other apps to seemlessly change when the user makes changes to the inputs. 
+
+
