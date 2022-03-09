@@ -1,0 +1,124 @@
+---
+title: "In Class Exam"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##“All work presented is my own. I have not communicated with or worked with anyone else on this exam.”
+
+Nick Grammas 
+
+Question 1:
+a.) the grammar graphics in this code are data, geom, aestetic mapping, stat, and coordinate function
+
+b.) The principle is visual tasks and decoding graphs. In the current graph the audience would have to decode the graph and in doing so could easily make mistakes due to its randomness. When we put these types of graphs in order it is much easier to decode them and interpret them leading to easier analysis.
+
+c.) Zero is needed in bar plots because as humans we need a reference point to truely understand and interpret how long each bar really is. Without that zero base it becomes difficult to interpret correctly. Zero doesn't need to be in point plots because we can understand the trends in points much better. If zero was a requirement it could also be used to exaggerate data and mislead audiences as well.
+
+Question 2:
+
+
+Question 3:
+I learned that with data ethics it is really important to include all data and look for different perspectives to make sure all data is included. For example, in the challenger data set no one thought it would be that cold but it was and ended in tragedy. We need to have that open mind and think of many different possibilities to ensure we present correct and accurate information.
+
+Question 4:
+ 
+a.)
+```{r}
+library(maps)
+library(tidyverse)
+library(here)
+election_df <- read_csv(here("2020_county_pres.csv")) %>%
+  group_by(state_name) %>%
+  summarise(total_gop = sum(votes_gop),
+            total_dem = sum(votes_dem)) %>%
+  mutate(percent_gop = 100 * total_gop / (total_gop + total_dem)) %>%
+  mutate(state_name = str_to_lower(state_name))
+election_df
+
+state_df <- ggplot2::map_data("state")
+
+library(lubridate)
+state_full <- left_join(state_df, election_df, by = c("region" = "state_name"))
+state_df
+```
+```{r}
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = percent_gop)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_b()
+```
+b.)
+R needs much more than 50 rows to construct the US map because it creates the map based on latitude and longitude points of each state. Because of the many edges and corners there needs to be many points in order to do this.
+
+Question 5:
+```{r}
+alcohol_df <- read_csv("data/alcohol.csv")
+alcohol_df
+```
+Question 6:
+
+
+Question 7:
+```{r}
+library(tidyverse)
+library(here)
+wta_df <- read_csv("data/wta_matches_2019.csv")
+wta_long <- wta_df %>% pivot_longer(c(winner_name, loser_name),
+                                    names_to = "won_or_lost",
+                                    values_to = "player") %>%
+  select(won_or_lost, player, everything(), w_ace, l_ace) %>%
+  group_by(player, tourney_name) %>%
+  summarise(nw_ace = sum(w_ace),
+            nl_ace = sum(l_ace)) %>%
+  mutate(avg_w_ace = nw_ace/nl_ace) %>%
+  filter(avg_w_ace != "Inf",
+         avg_w_ace != "NaN") %>%
+  group_by(player, avg_w_ace) %>%
+  summarise(mean_w_ace = mean(avg_w_ace)) %>%
+  arrange(desc(mean_w_ace)) %>%
+  filter(player == "Kristyna Pliskova" |
+           player == "Qiang Wang" |
+         player == "Jennifer Brady") %>%
+  slice(1:3)
+  
+wta_long
+wta_df
+ggplot(data = wta_long, aes(x = player, y = mean_w_ace)) +
+  geom_point() +
+  geom_segment(aes(x = player, xend = player, y = 0, yend = mean_w_ace)) +
+  coord_flip() +
+  labs(y = "Mean Winning Ace")
+```
+
+Question 8:
+
+a.)
+This plot is not great for showing the top servers in 2019 because it does not show us the variability in this graph. For example, there could have been one player that was on fire with her serve but ended up getting injured. This plot doesn't really show us that and as a result we don't know much about the actual tennis season because of it. Additionally, this data set has many different levels of tournament play so there could have been one athlete dominating opponents on the lowest level. 
+
+```{r}
+library(tibble)
+set.seed(03092022)
+toy_df <- tibble(group = c("a", "a", "a", "b", "b", "b", "c", "c",
+                           "c", "c", "d", "d"),
+       response = rnorm(12, 4, 3))
+
+toy_df_mean <- toy_df %>% group_by(group) %>%
+    summarise(meanresponse = mean(response),
+            sdresponse = sd(response),
+            nresponse = n()) %>%
+  mutate(l_se = meanresponse - sdresponse / sqrt(nresponse),
+         u_se = meanresponse + sdresponse / sqrt(nresponse))
+toy_df_mean
+
+ggplot(data = toy_df_mean, aes(x = group, y = meanresponse)) +
+  geom_point() +
+  geom_segment(aes(x = group, xend = group, y = l_se, yend = u_se)) +
+  coord_flip() +
+  labs(y = "Mean Toy Response")
+```
+
