@@ -1,0 +1,12 @@
+---
+title: "Updates"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## March 23 Beginning of Class
+
+I decided that I would be doing a blog for the final project. I downloaded the blogdown package and began discovering some of the features. I did struggle to get the package downloaded but managed to get it going. Finally, I started looking through github data sets to find realestate data sets to get the data necessary for the blog.
